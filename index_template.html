@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>Movie Search</title>
 
 	<meta charset="UTF-8"> 
 
@@ -27,17 +27,18 @@
 				 	aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 				</p>
 				<div id="results">
-					<div id="movieName">Movie 1</div>
+					<h2 id="movieName">Movie 1</h2>
 					<div id="moviePicture">A Picture</div>
-					<div id="movieText">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+					<p id="movieText">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
 						incididunt ut labore et dolore magna aliqua. 
-					</div>
-					<div id="movieRating">IMDB: *****</div>
+					</p>
+					<p id="movieActors"></p>
+					<p id="mpaa"></p>
+					<p id="movieRating">IMDB: *****</p>
 					<div id="movieTwitterRating">Twitter: ***</div>
 					<div id="movieTwitterFeed">
 						Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
 					</div>
-					
 				</div>
 
 
@@ -52,12 +53,15 @@
 			<div>Movie 5</div>
 
 			</div>
-
-
+		</div>
+		<div id="temp"></div>
+	</div>
 
 	<!-- JavaScript -->
+	<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase.js"></script>
 	<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-	<script src="assets/javascript/app.js"></script>
+	<script src="assets/javascript/apiHandler.js"></script>
+	<script src="assets/javascript/database.js"></script>
 </body>
 </html>
