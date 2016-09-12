@@ -34,7 +34,22 @@ h3.inlineText{
 }
 #twitterContentBoxA, #twitterContentBoxB{
 	position: absolute;
-	top:150px;
+	/*top:150px;*/
+}
 
+.twitterHandleLinkGreen{
+	color:#A2AA75;
+	font-weight: bold;
+}
+.twitterHandleLinkBrown{
+	color:#AA9775;
+	font-weight: bold;
+}
+.twitterHandleLinkPink{
+	color:#AA7D75;
+	font-weight: bold;
+}
+.twitterLinkBold{
+	font-weight: bold;
 
 }
