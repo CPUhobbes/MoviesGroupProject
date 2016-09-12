@@ -10,6 +10,9 @@
     <meta name="author" content="">
 
     <title>Movie Reviews by the Masses</title>
+    <!-- Custom CSS -->
+    <link href="css/reset.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
 
     <!-- Bootstrap Core CSS -->
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -94,24 +97,51 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 search-bar">
                     <div class="input-group">
-                      <input type="text" class="form-control" placeholder="Search for a movie...">
+                      <input type="text" class="form-control" id="movieSearch" placeholder="Search for a movie...">
                       <span class="input-group-btn">
-                        <button class="btn btn-default" type="button">Go!</button>
+                        <button class="btn btn-default" id="searchRequest" type="button">Go!</button>
                       </span>
                     </div><!-- /input-group -->
                   </div><!-- /.col-lg-6 -->
                 </div><!-- /.row -->
-<!--                 <div class="col-lg-4 col-lg-offset-2">
-                    <p>Freelancer is a free bootstrap theme created by Start Bootstrap. The download includes the complete source files including HTML, CSS, and JavaScript as well as optional LESS stylesheets for easy customization.</p>
+                <div id="movieData" class="hidden">
+                    <div class="col-lg-4 col-lg-offset-1">
+                        <h1 id="movieTitle"></h1>
+                        <div id="movieImage"></div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div>
+                            <h3>Plot</h3>
+                            <p id="moviePlot"></p>
+                        </div>
+                        <div>
+                            <h3>Starring</h3>
+                            <p id="movieActors"></p>
+                        </div>
+                        <div>
+                            <h3>MPAA Rating</h3>
+                            <p id="rating"></p>
+                        </div>
+                        <div>
+                            <h3>IMDB Score</h3>
+                            <p id="imdbRate"></p>
+                        </div>
+                        <div>
+                            <h3 class="inlineText">Twitter Mood Score &nbsp;</h3>
+                            <sup><a href="#" data-toggle="tooltip" title="Hundreds of tweets are analyzed for overall mood related to the movie. The higher the number the more the movie is associated with happy thoughts." 
+                                class="color-tooltip" data-placement="right">
+                            <i class="fa fa-question-circle fa-2x" aria-hidden="true"></i></a></sup>
+                            <p id="twitterRate">Getting Score...</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                         <div class="col-lg-10 col-lg-offset-1" id="twitterBox">
+                         <div id="twitterContentBoxA" class="stopAnimation"></div>
+                         <div id="twitterContentBoxB" class="stopAnimation"></div>
+
+                         </div>
+                    </div>
                 </div>
-                <div class="col-lg-4">
-                    <p>Whether you're a student looking to showcase your work, a professional looking to attract clients, or a graphic artist looking to share your projects, this template is the perfect starting point!</p>
-                </div>
-                <div class="col-lg-8 col-lg-offset-2 text-center">
-                    <a href="#" class="btn btn-lg btn-outline">
-                        <i class="fa fa-download"></i> Download Theme
-                    </a>
-                </div> -->
             </div>
         </div>
     </section>
@@ -422,6 +452,10 @@
 
     <!-- Theme JavaScript -->
     <script src="js/freelancer.min.js"></script>
+
+    <!-- API Javascript -->
+    <script src="js/apiHandler.js"></script>
+
 
 </body>
 
