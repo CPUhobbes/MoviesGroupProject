@@ -1,4 +1,26 @@
+//Firebase
+// var config = {
+//     apiKey: "AIzaSyCEH0sq38WLWhVNAeLA5KD6sGqh32OcrEM",
+//     authDomain: "class-891d1.firebaseapp.com",
+//     databaseURL: "https://class-891d1.firebaseio.com",
+//     storageBucket: "class-891d1.appspot.com",
+//     messagingSenderId: "122896327252"
+//   };
 
+var config = {
+    apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
+    authDomain: "moviedb-542e0.firebaseapp.com",
+    databaseURL: "https://moviedb-542e0.firebaseio.com",
+    storageBucket: "moviedb-542e0.appspot.com",
+    messagingSenderId: "39102071856"
+  };
+  firebase.initializeApp(config);
+
+  var database = firebase.database();
+
+//Autocomplete Lists
+var formattedAutocompleteList= new Array(); //User viewable
+var autocompleteList= new Array();  //JSON Object
 
 //Scrolling booleans to see if the boxes are moving
 var scrollingBoxA=false;
@@ -86,24 +108,46 @@ $("#twitterBox").on("mouseout", function(){
 	}
 });
 
+//Everytime a key is pressed update possibilities list
+var lastentry = "";
+$('#movieSearch').keyup(function(event) {
+   if($('#movieSearch').val() != lastentry) {       
+   		lastentry = $('#movieSearch').val()
+   		if(lastentry.length>4){
+   			getResult(lastentry);
+   		}
+   }
+   lastentry = $('#movieSearch').val()
+});
+
 //Get the string from the earch box and call the search function
 function movieQuery(){
+
 	var searchString = $("#movieSearch").val().trim();
-	
+	var movieName = searchString.replace(/\(.*?\)/g, "").trim();
+	var movieTitle = searchString.match(/\d{8}/);
+
 	//Prevent searches on blank search string
 	if(searchString !== "" && searchString !== null){
+		if(movieTitle!==null){
+			omdbSearch(movieName, movieTitle[0]);
+			console.log(movieName, movieTitle[0]);
+		}
+		else{
+			omdbSearch(movieName,"");
+		}
 
 		//Seach OMDB API
-		omdbSearch(searchString);
+		//omdbSearch(searchString);
 
 		//For twitter search see omdbSearch() under foundMovie logic;
 	}
 }
 
 //Query the omdb
-function omdbSearch(movieName){
+function omdbSearch(movieName, movieTitle){
 
-	var queryURL = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&r=json";
+	var queryURL = "http://www.omdbapi.com/?t="+movieName+"&y="+movieTitle+"&plot=short&r=json";
 
 	$.ajax({url: queryURL, method: 'GET'})
 	.done(function(response) {
@@ -274,4 +318,37 @@ function formatTweet(tweetObj){
 
 	line = handle+message+"<br /><br />";
 	return line;
+}
+
+
+function getResult(query){
+
+	database.ref().orderByChild('title').startAt(query).on("value", function(snapshot) {
+		formattedAutocompleteList= new Array();
+		autocompleteList= new Array();
+			console.log(snapshot.val());
+		for(var i=0;i<snapshot.val().length;++i){
+			if(snapshot.val()!==null){
+				formattedAutocompleteList.push(snapshot.val()[i].title);//+" ("+snapshot.val()[i].year+")");
+				
+
+				// var list = {
+				// 	title: snapshot.val()[i].title,
+				// 	year: snapshot.val()[i].year
+				// }	
+		  // 		autocompleteList.push(list);
+	  		}
+	  	}
+
+	  	updateList();
+	});
+}
+
+function updateList(){
+
+	$( "#movieSearch" ).autocomplete({
+	source: formattedAutocompleteList
+});
+
+
 }
