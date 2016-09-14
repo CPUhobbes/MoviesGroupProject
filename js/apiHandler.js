@@ -1,10 +1,18 @@
 //Firebase
+// var config = {
+//     apiKey: "AIzaSyCEH0sq38WLWhVNAeLA5KD6sGqh32OcrEM",
+//     authDomain: "class-891d1.firebaseapp.com",
+//     databaseURL: "https://class-891d1.firebaseio.com",
+//     storageBucket: "class-891d1.appspot.com",
+//     messagingSenderId: "122896327252"
+//   };
+
 var config = {
-    apiKey: "AIzaSyCEH0sq38WLWhVNAeLA5KD6sGqh32OcrEM",
-    authDomain: "class-891d1.firebaseapp.com",
-    databaseURL: "https://class-891d1.firebaseio.com",
-    storageBucket: "class-891d1.appspot.com",
-    messagingSenderId: "122896327252"
+    apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
+    authDomain: "moviedb-542e0.firebaseapp.com",
+    databaseURL: "https://moviedb-542e0.firebaseio.com",
+    storageBucket: "moviedb-542e0.appspot.com",
+    messagingSenderId: "39102071856"
   };
   firebase.initializeApp(config);
 
@@ -105,7 +113,9 @@ var lastentry = "";
 $('#movieSearch').keyup(function(event) {
    if($('#movieSearch').val() != lastentry) {       
    		lastentry = $('#movieSearch').val()
-   		getResult(lastentry);
+   		if(lastentry.length>4){
+   			getResult(lastentry);
+   		}
    }
    lastentry = $('#movieSearch').val()
 });
@@ -316,16 +326,17 @@ function getResult(query){
 	database.ref().orderByChild('title').startAt(query).on("value", function(snapshot) {
 		formattedAutocompleteList= new Array();
 		autocompleteList= new Array();
-			
+			console.log(snapshot.val());
 		for(var i=0;i<snapshot.val().length;++i){
 			if(snapshot.val()!==null){
-				formattedAutocompleteList.push(snapshot.val()[i].title+" ("+snapshot.val()[i].year+")");
+				formattedAutocompleteList.push(snapshot.val()[i].title);//+" ("+snapshot.val()[i].year+")");
+				
 
-				var list = {
-					title: snapshot.val()[i].title,
-					year: snapshot.val()[i].year
-				}	
-		  		autocompleteList.push(list);
+				// var list = {
+				// 	title: snapshot.val()[i].title,
+				// 	year: snapshot.val()[i].year
+				// }	
+		  // 		autocompleteList.push(list);
 	  		}
 	  	}
 
