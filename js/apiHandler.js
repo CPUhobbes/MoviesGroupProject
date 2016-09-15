@@ -83,7 +83,7 @@ $(".twitter-hashtag-button").on("click", function() {
 //If Go! is clicked run the movie query
 $("#searchRequest").on("click", function(){
 
-	$("#twitterRate").html("Getting Score...");
+	$("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
 	movieQuery();
 });
 
@@ -189,7 +189,7 @@ function omdbSearch(movieName, movieTitle){
 			$("#movieActors").html("N/A");
 			$("#rating").html("N/A");
 			$("#imdbRate").html("N/A");
-			$("#twitterRate").html("N/A");
+			$("#twitterRate").html("<p>N/A</p>");
 
 			//Stops twitter feed from last movie (if searched)
 			resetAnimation();
@@ -203,6 +203,11 @@ function omdbSearch(movieName, movieTitle){
 
 function twitterSearch(movieName){
 
+	movieName = movieName.replace(/the /i,'');
+	if(movieName[0].toUpperCase() === 'A' && movieName[1] === ' '){
+		movieName=movieName.substring(1);
+	}
+	//console.log(movieName);
 	var queryURL = "http://apparelart.com/Bootcamp/getTweets.php?tweet="+movieName;
 
 	var positive =0;
@@ -230,7 +235,7 @@ function twitterSearch(movieName){
 	 	resetAnimation();
 		animateBoxA();
 	 	$twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
-	 	$("#twitterRate").html($twitterScore);
+	 	$("#twitterRate").html("<p>"+$twitterScore+"</p>");
 	 });
 }
 
