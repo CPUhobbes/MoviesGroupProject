@@ -36,6 +36,9 @@ $(document).ready(function(){
 	//Enables tooltip
     $('[data-toggle="tooltip"]').tooltip();
 
+    //Get listing of movies from DB
+    queryDB();
+
     //Twitter button javascript (from twitter.com)
     window.twttr = (function(d, s, id) {
   		var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {};
@@ -112,12 +115,12 @@ $("#twitterBox").on("mouseout", function(){
 var lastentry = "";
 $('#movieSearch').keyup(function(event) {
    if($('#movieSearch').val() != lastentry) {       
-   		lastentry = $('#movieSearch').val()
-   		if(lastentry.length>4){
-   			getResult(lastentry);
+   		lastentry = $('#movieSearch').val();
+   		if(lastentry.length>1){
+   			updateList();
    		}
    }
-   lastentry = $('#movieSearch').val()
+   lastentry = $('#movieSearch').val();
 });
 
 //Get the string from the earch box and call the search function
@@ -125,13 +128,14 @@ function movieQuery(){
 
 	var searchString = $("#movieSearch").val().trim();
 	var movieName = searchString.replace(/\(.*?\)/g, "").trim();
-	var movieTitle = searchString.match(/\d{8}/);
-
+	var movieYear = searchString.match(/\d{8}/);
+	
 	//Prevent searches on blank search string
 	if(searchString !== "" && searchString !== null){
-		if(movieTitle!==null){
-			omdbSearch(movieName, movieTitle[0]);
-			console.log(movieName, movieTitle[0]);
+		if(movieYear!==null){
+
+			omdbSearch(movieName, movieYear[0]);
+			
 		}
 		else{
 			omdbSearch(movieName,"");
@@ -167,7 +171,7 @@ function omdbSearch(movieName, movieTitle){
 		if(foundMovie !== "False"){
 
 			$("#movieTitle").html(title);
-			$("#movieImage").html(image);
+			//$("#movieImage").html(image);
 			$("#moviePlot").html(plot);
 			$("#movieActors").html(actors);
 			$("#rating").html(rating);
@@ -320,35 +324,24 @@ function formatTweet(tweetObj){
 	return line;
 }
 
-
-function getResult(query){
-
-	database.ref().orderByChild('title').startAt(query).on("value", function(snapshot) {
-		formattedAutocompleteList= new Array();
-		autocompleteList= new Array();
-			console.log(snapshot.val());
-		for(var i=0;i<snapshot.val().length;++i){
-			if(snapshot.val()!==null){
-				formattedAutocompleteList.push(snapshot.val()[i].title);//+" ("+snapshot.val()[i].year+")");
-				
-
-				// var list = {
-				// 	title: snapshot.val()[i].title,
-				// 	year: snapshot.val()[i].year
-				// }	
-		  // 		autocompleteList.push(list);
-	  		}
-	  	}
-
-	  	updateList();
-	});
-}
-
 function updateList(){
 
 	$( "#movieSearch" ).autocomplete({
-	source: formattedAutocompleteList
-});
+		source: formattedAutocompleteList
+	});
+}
 
+function queryDB(){
+	database.ref().orderByChild('title').on("value", function(snapshot) {
+		formattedAutocompleteList= new Array();
+		var dbArray = $.map(snapshot.val(), function(el) { 
+			return el 
+		});
+        for(var i=0;i<dbArray.length;++i){
+            if(snapshot.val()!==null){
+            	formattedAutocompleteList.push(dbArray[i].title);
+            }
+        }
+    });
 
 }
