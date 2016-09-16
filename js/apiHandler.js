@@ -19,7 +19,6 @@ var config = {
   var database = firebase.database();
 
 //Autocomplete Lists
-var formattedAutocompleteList= new Array(); //User viewable
 var autocompleteList= new Array();  //JSON Object
 
 //Scrolling booleans to see if the boxes are moving
@@ -91,6 +90,7 @@ $("#searchRequest").on("click", function(){
 $("input").keypress(function(event) {
     if (event.which == 13) {
         event.preventDefault();
+        $("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
         movieQuery();
     }
 });
@@ -116,9 +116,7 @@ var lastentry = "";
 $('#movieSearch').keyup(function(event) {
    if($('#movieSearch').val() != lastentry) {       
    		lastentry = $('#movieSearch').val();
-   		if(lastentry.length>1){
    			updateList();
-   		}
    }
    lastentry = $('#movieSearch').val();
 });
@@ -160,8 +158,14 @@ function omdbSearch(movieName, movieTitle){
 		var title = response.Title;
 		var plot = response.Plot;
 		var year = response.Year;
-		var image = $('<img>').attr("src", response.Poster);
+		var image;
+		if(response.Poster === "N/A"){
+			image = "<p>No Image Avaliable :(</p>";
+		}
+		else{
+		image = $('<img>').attr("src", response.Poster);
 			image.attr("alt", title);
+		}
 		var actors = response.Actors;
 		var rating = response.Rated;
 		var imdbRate = response.imdbRating;
@@ -171,7 +175,7 @@ function omdbSearch(movieName, movieTitle){
 		if(foundMovie !== "False"){
 
 			$("#movieTitle").html(title);
-			//$("#movieImage").html(image);
+			$("#movieImage").html(image);
 			$("#moviePlot").html(plot);
 			$("#movieActors").html(actors);
 			$("#rating").html(rating);
@@ -203,6 +207,7 @@ function omdbSearch(movieName, movieTitle){
 
 function twitterSearch(movieName){
 
+	//Remove 'The' and 'A' from title for better search
 	movieName = movieName.replace(/the /i,'');
 	if(movieName[0].toUpperCase() === 'A' && movieName[1] === ' '){
 		movieName=movieName.substring(1);
@@ -329,22 +334,29 @@ function formatTweet(tweetObj){
 	return line;
 }
 
+//Add results from DB to autocomplete
 function updateList(){
 
 	$( "#movieSearch" ).autocomplete({
-		source: formattedAutocompleteList
+		//Makes autocomplete only max 10 possibilities
+		source: function(request, response) {
+	       var results = $.ui.autocomplete.filter(autocompleteList, request.term);
+	       response(results.slice(0, 10));
+    	},
+    	minLength:2
 	});
 }
 
+//Query entire DB, firebase does not have native "like" search capabilities
 function queryDB(){
 	database.ref().orderByChild('title').on("value", function(snapshot) {
-		formattedAutocompleteList= new Array();
+		autocompleteList= new Array();
 		var dbArray = $.map(snapshot.val(), function(el) { 
 			return el 
 		});
         for(var i=0;i<dbArray.length;++i){
             if(snapshot.val()!==null){
-            	formattedAutocompleteList.push(dbArray[i].title);
+            	autocompleteList.push(dbArray[i].title);
             }
         }
     });
