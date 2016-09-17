@@ -8,7 +8,9 @@ var testDate2 = 1473523295344; // Number of seconds since 1/1/1970 until right n
 //     ongoingScore: 0
 // }
 
-var searchInput, currentMovieObj, currentMovieObjSearches;
+var currentMovieObj, currentMovieObjSearches;
+var searchInput;
+var movieTitles;
 var moviesInOrder = [];
 var $twitterScore = 12.0;
 
@@ -23,6 +25,11 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
+$(document).ready(function(){
+    checkMoviesInDatabase();
+});
+
+
 // Add Test movie search
 //database.ref(testMovieSearch.searchTerm).set(testMovieSearch);
 
@@ -30,56 +37,107 @@ var database = firebase.database();
 database.ref().once("value", function(snapshot){ 
     if (snapshot.child("moviesInOrder").exists()) {
         moviesInOrder = snapshot.val().moviesInOrder;
+        console.log("moviesInOrder: " + moviesInOrder);
+    } 
+    if (snapshot.child("movies").exists()) {
+        movieTitles = Object.keys(snapshot.val().movies);
+        console.log("movieTitles: " + movieTitles);
     } 
 });
 
-// Listener: Submitted movie search, lookup the movie in our DB, adjust numSearches and mostRecentSearchTime, and grab changed movie object.
-// KEY TO FIREBASE: Grab current value from DB, adjust it locally, re-write to DB
-database.ref().on("value", function(snapshot){
-    //If enter is pressed run database query
-    $("input").keypress(function(event) {
-        if (event.which == 13) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            $("#searchRequest").click();
+$("input").keypress(function(event) {
+    if (event.which == 13) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        $("#searchRequest").click();
+    }
+});
+
+// event.stopImmediatePropagation();
+
+// Grab snapshot
+function checkMoviesInDatabase() {
+    database.ref().on("value", function(snapshot) {
+        if (snapshot.child("movies").exists()) {
+            movieTitles = Object.keys(snapshot.val().movies);  
         }
     });
-    $("#searchRequest").on("click", function(event) {
-        console.log("line 48");
-        event.stopImmediatePropagation();
-        searchInput = $("#movieSearch").val().trim().toLowerCase();
-        // If movie already in Firebase, pull that
-        console.log(snapshot.child(searchInput).exists());
-        if (snapshot.child(searchInput).exists()) {
-            currentMovieObj = snapshot.child(searchInput).val();
-        } 
-        else {
-            currentMovieObj = {
-                searchTerm: searchInput,
-                numSearches: 0,
-                mostRecentSearchTime: Date.now(),
-                ongoingScore: 0
+}
+
+$("#searchRequest").on("click", function() {
+    searchInput = $("#movieSearch").val().toString().trim().toLowerCase();
+    addSearchToDB();
+    updateMovieObj(currentMovieObj);
+    updateOngoingScore(currentMovieObj);
+    updateMoviesInOrderArr();
+    updateMoviesButtons();
+    $("#movieSearch").val(""); // clear input form
+});
+
+function addSearchToDB() {
+    if (movieTitles !== undefined) {
+        console.log("Line 87");
+        database.ref("movies").on("value", function(snapshot){
+            if ((movieTitles.indexOf(searchInput) !== -1)) {
+                console.log("wahhh");
+                currentMovieObj = snapshot.child(searchInput).val();
             }
-            console.log(currentMovieObj);
+            else {
+                currentMovieObj = {
+                    searchTerm: searchInput,
+                    numSearches: 0,
+                    mostRecentSearchTime: Date.now(),
+                    ongoingScore: 0
+                }
+            }
+        });
+    }
+    else if (currentMovieObj === undefined) {
+        console.log("Line 95");
+        currentMovieObj = {
+            searchTerm: searchInput,
+            numSearches: 0,
+            mostRecentSearchTime: Date.now(),
+            ongoingScore: 0
         }
         console.log(currentMovieObj);
-        // Update the object then push to DB. 
-        updateMovieObj(currentMovieObj);
-        database.ref(searchInput).set(currentMovieObj);
-        // Update moviesInOrder, push that to DB & write to DOM
-        updateMoviesInOrderArr();
-        database.ref("moviesInOrder").set(moviesInOrder);
-        updateMoviesButtons();
-        $("#movieSearch").val(""); // clear input form
-    });
-    //console.log(snapshot.val()[searchInput]); // debug, validate that numSearches updates
-});
+    }
+    database.ref("movies/" + searchInput).set(currentMovieObj);
+} 
+
+
+//     database.ref().on("value", function(snapshot){
+//         //If enter is pressed run database query
+//         //console.log(snapshot.val()[searchInput]); // debug, validate that numSearches updates
+//         console.log("line 48");
+//         // If movie already in Firebase, pull that
+//         //console.log(snapshot.child(searchInput).exists());
+//         if (snapshot.child(searchInput).exists()) {
+//             currentMovieObj = snapshot.child(searchInput).val();
+//         } 
+//     });
+// }
+        // console.log(currentMovieObj);
+        // // Update the object then push to DB. 
+        // console.log("outside of database call");
+        // updateMovieObj(currentMovieObj);
+        // ç
+        // // Update moviesInOrder, push that to DB & write to DOM
+        // updateMoviesInOrderArr();
+        // database.ref("moviesInOrder").set(moviesInOrder);
+        // updateMoviesButtons();
+        // $("#movieSearch").val(""); // clear input form
+        // console.log("reached the end");
+
+// Listener: Submitted movie search, lookup the movie in our DB, adjust numSearches and mostRecentSearchTime, and grab changed movie object.
+// KEY TO FIREBASE: Grab current value from DB, adjust it locally, re-write to DB
 
 // Grab existing movie from DB, need to change (1) numSearches, (2) mostRecentSearchTime, (3) ongoingScore (separate function)
 function updateMovieObj(movieObj) {
     movieObj.numSearches++;
     movieObj.mostRecentSearchTime = Date.now();
     movieObj.ongoingScore = updateOngoingScore(movieObj);
+    database.ref("movies/" + searchInput).set(currentMovieObj);
 }
 
 // Calculate new ongoingScore
@@ -92,17 +150,19 @@ function updateOngoingScore(movieObj) {
 
 // Evaluate moviesInOrder and remove current movie from array if it exists. Then add back current movie to correct place based on numSearches
 function updateMoviesInOrderArr() {
+    var newMovieArrIndex = moviesInOrder.indexOf(currentMovieObj);
     var counter = 0;
     if (moviesInOrder.length === 0) {
         moviesInOrder.push(currentMovieObj);
         console.log("line 93");
     } 
     else {
-        //LEFT OFF HERE, need to account for: 1 movie in list matches current movie, 1 movie in list doesn't match current movie, > 1 movies in list
         // If only 1 item in array and it's for the same movie, replace
         if ((moviesInOrder.length === 1) && (currentMovieObj.searchTerm === moviesInOrder[0].searchTerm)) {
+            console.log(moviesInOrder);
             console.log("line 99");
             moviesInOrder.splice(0, 1, currentMovieObj);
+            console.log(moviesInOrder);
         }
         // If only 1 item in array and it's for a different movie, evaluate which has more searches
         else if ((moviesInOrder.length === 1) && (currentMovieObj.searchTerm !== moviesInOrder[0].searchTerm)) {
@@ -119,8 +179,9 @@ function updateMoviesInOrderArr() {
         }
         // If more than 1 item in array, evaluate if current movie in array
         else if (moviesInOrder.indexOf(currentMovieObj) !== -1) {
-            var newMovieArrIndex = moviesInOrder.indexOf(currentMovieObj);
+            console.log(moviesInOrder);
             moviesInOrder.splice(newMovieArrIndex, 1);
+            console.log(moviesInOrder);
             for (var i = 0; i < moviesInOrder.length; i++) {
                 // If this numSearches for current movie >= movie at index i, insert currentMovieObj at index i. (last search time for current movie will always be more recent)
                 if (currentMovieObj.numSearches >= moviesInOrder[i].numSearches){
@@ -135,7 +196,7 @@ function updateMoviesInOrderArr() {
                 moviesInOrder.push(currentMovieObj);
             }   
         }
-        // If movie in not array, find another movie w/ numSearches === 1
+        // If movie not in array, find another movie w/ numSearches === 1
         else {
             for (var j = 0; j < moviesInOrder.length; j++) {
                 if (moviesInOrder[j].numSearches === 1) {
@@ -153,6 +214,7 @@ function updateMoviesInOrderArr() {
             }
         }
     }
+    database.ref("moviesInOrder").set(moviesInOrder);
 }
 // Write top 10 movies to DOM.
 function updateMoviesButtons() {
