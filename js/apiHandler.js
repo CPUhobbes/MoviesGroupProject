@@ -19,7 +19,6 @@ var config = {
   var database = firebase.database();
 
 //Autocomplete Lists
-var formattedAutocompleteList= new Array(); //User viewable
 var autocompleteList= new Array();  //JSON Object
 
 //Scrolling booleans to see if the boxes are moving
@@ -35,6 +34,9 @@ var twitterBoxB = $("#twitterContentBoxB");
 $(document).ready(function(){
 	//Enables tooltip
     $('[data-toggle="tooltip"]').tooltip();
+
+    //Get listing of movies from DB
+    queryDB();
 
     //Twitter button javascript (from twitter.com)
     window.twttr = (function(d, s, id) {
@@ -80,7 +82,7 @@ $(".twitter-hashtag-button").on("click", function() {
 //If Go! is clicked run the movie query
 $("#searchRequest").on("click", function(){
 
-	$("#twitterRate").html("Getting Score...");
+	$("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
 	movieQuery();
 });
 
@@ -88,6 +90,7 @@ $("#searchRequest").on("click", function(){
 $("input").keypress(function(event) {
     if (event.which == 13) {
         event.preventDefault();
+        $("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
         movieQuery();
     }
 });
@@ -112,12 +115,10 @@ $("#twitterBox").on("mouseout", function(){
 var lastentry = "";
 $('#movieSearch').keyup(function(event) {
    if($('#movieSearch').val() != lastentry) {       
-   		lastentry = $('#movieSearch').val()
-   		if(lastentry.length>4){
-   			getResult(lastentry);
-   		}
+   		lastentry = $('#movieSearch').val();
+   			updateList();
    }
-   lastentry = $('#movieSearch').val()
+   lastentry = $('#movieSearch').val();
 });
 
 //Get the string from the earch box and call the search function
@@ -125,13 +126,14 @@ function movieQuery(){
 
 	var searchString = $("#movieSearch").val().trim();
 	var movieName = searchString.replace(/\(.*?\)/g, "").trim();
-	var movieTitle = searchString.match(/\d{8}/);
-
+	var movieYear = searchString.match(/\d{8}/);
+	
 	//Prevent searches on blank search string
 	if(searchString !== "" && searchString !== null){
-		if(movieTitle!==null){
-			omdbSearch(movieName, movieTitle[0]);
-			console.log(movieName, movieTitle[0]);
+		if(movieYear!==null){
+
+			omdbSearch(movieName, movieYear[0]);
+			
 		}
 		else{
 			omdbSearch(movieName,"");
@@ -156,8 +158,14 @@ function omdbSearch(movieName, movieTitle){
 		var title = response.Title;
 		var plot = response.Plot;
 		var year = response.Year;
-		var image = $('<img>').attr("src", response.Poster);
+		var image;
+		if(response.Poster === "N/A"){
+			image = "<p>No Image Avaliable :(</p>";
+		}
+		else{
+		image = $('<img>').attr("src", response.Poster);
 			image.attr("alt", title);
+		}
 		var actors = response.Actors;
 		var rating = response.Rated;
 		var imdbRate = response.imdbRating;
@@ -185,7 +193,7 @@ function omdbSearch(movieName, movieTitle){
 			$("#movieActors").html("N/A");
 			$("#rating").html("N/A");
 			$("#imdbRate").html("N/A");
-			$("#twitterRate").html("N/A");
+			$("#twitterRate").html("<p>N/A</p>");
 
 			//Stops twitter feed from last movie (if searched)
 			resetAnimation();
@@ -199,6 +207,12 @@ function omdbSearch(movieName, movieTitle){
 
 function twitterSearch(movieName){
 
+	//Remove 'The' and 'A' from title for better search
+	movieName = movieName.replace(/the /i,'');
+	if(movieName[0].toUpperCase() === 'A' && movieName[1] === ' '){
+		movieName=movieName.substring(1);
+	}
+	//console.log(movieName);
 	var queryURL = "http://apparelart.com/Bootcamp/getTweets.php?tweet="+movieName;
 
 	var positive =0;
@@ -226,7 +240,7 @@ function twitterSearch(movieName){
 	 	resetAnimation();
 		animateBoxA();
 	 	$twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
-	 	$("#twitterRate").html($twitterScore);
+	 	$("#twitterRate").html("<p>"+$twitterScore+"</p>");
 	 });
 }
 
@@ -320,35 +334,31 @@ function formatTweet(tweetObj){
 	return line;
 }
 
-
-function getResult(query){
-
-	database.ref().orderByChild('title').startAt(query).on("value", function(snapshot) {
-		formattedAutocompleteList= new Array();
-		autocompleteList= new Array();
-			console.log(snapshot.val());
-		for(var i=0;i<snapshot.val().length;++i){
-			if(snapshot.val()!==null){
-				formattedAutocompleteList.push(snapshot.val()[i].title);//+" ("+snapshot.val()[i].year+")");
-				
-
-				// var list = {
-				// 	title: snapshot.val()[i].title,
-				// 	year: snapshot.val()[i].year
-				// }	
-		  // 		autocompleteList.push(list);
-	  		}
-	  	}
-
-	  	updateList();
-	});
-}
-
+//Add results from DB to autocomplete
 function updateList(){
 
 	$( "#movieSearch" ).autocomplete({
-	source: formattedAutocompleteList
-});
+		//Makes autocomplete only max 10 possibilities
+		source: function(request, response) {
+	       var results = $.ui.autocomplete.filter(autocompleteList, request.term);
+	       response(results.slice(0, 10));
+    	},
+    	minLength:2
+	});
+}
 
+//Query entire DB, firebase does not have native "like" search capabilities
+function queryDB(){
+	database.ref().orderByChild('title').on("value", function(snapshot) {
+		autocompleteList= new Array();
+		var dbArray = $.map(snapshot.val(), function(el) { 
+			return el 
+		});
+        for(var i=0;i<dbArray.length;++i){
+            if(snapshot.val()!==null){
+            	autocompleteList.push(dbArray[i].title);
+            }
+        }
+    });
 
 }
