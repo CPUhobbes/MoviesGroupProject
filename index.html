@@ -20,6 +20,9 @@
     <!-- Theme CSS -->
     <link href="css/freelancer.css" rel="stylesheet">
 
+    <!-- jQueryUI CSS -->
+    <link href="css/jquery-ui.css" rel="stylesheet">
+
     <!-- Custom Fonts -->
     <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
@@ -131,7 +134,7 @@
                             <sup><a href="#" data-toggle="tooltip" title="Hundreds of tweets are analyzed for overall mood related to the movie. The higher the number the more the movie is associated with happy thoughts." 
                                 class="color-tooltip" data-placement="right">
                             <i class="fa fa-question-circle fa-2x" aria-hidden="true"></i></a></sup>
-                            <p id="twitterRate">Getting Score...</p>
+                            <div id="twitterRate"><i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span></div>
                         </div>
                         <div class="tweets">
                             <a href="https://twitter.com/intent/tweet?button_hashtag=MoviesForMasses" class="twitter-hashtag-button" data-show-count="false">Tweet #MoviesForMasses</a>
@@ -448,6 +451,9 @@
         </div>
     </div> -->
 
+    <!-- Fire base -->
+    <script src="https://www.gstatic.com/firebasejs/3.3.2/firebase.js"></script>
+
     <!-- jQuery -->
     <script src="vendor/jquery/jquery.min.js"></script>
 
@@ -461,6 +467,9 @@
     <script src="js/jqBootstrapValidation.js"></script>
     <script src="js/contact_me.js"></script>
 
+    <!--jQuery UI javascript-->
+    <script src="js/jquery-ui.js"></script>
+
     <!-- Theme JavaScript -->
     <script src="js/freelancer.min.js"></script>
 
@@ -469,6 +478,9 @@
 
     <!-- API Javascript -->
     <script src="js/apiHandler.js"></script>
+
+    
+
 
 
 

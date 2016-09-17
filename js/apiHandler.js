@@ -1,4 +1,25 @@
+//Firebase
+// var config = {
+//     apiKey: "AIzaSyCEH0sq38WLWhVNAeLA5KD6sGqh32OcrEM",
+//     authDomain: "class-891d1.firebaseapp.com",
+//     databaseURL: "https://class-891d1.firebaseio.com",
+//     storageBucket: "class-891d1.appspot.com",
+//     messagingSenderId: "122896327252"
+//   };
 
+var config = {
+    apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
+    authDomain: "moviedb-542e0.firebaseapp.com",
+    databaseURL: "https://moviedb-542e0.firebaseio.com",
+    storageBucket: "moviedb-542e0.appspot.com",
+    messagingSenderId: "39102071856"
+  };
+  firebase.initializeApp(config);
+
+  var database = firebase.database();
+
+//Autocomplete Lists
+var autocompleteList= new Array();  //JSON Object
 
 //Scrolling booleans to see if the boxes are moving
 var scrollingBoxA=false;
@@ -13,6 +34,9 @@ var twitterBoxB = $("#twitterContentBoxB");
 $(document).ready(function(){
 	//Enables tooltip
     $('[data-toggle="tooltip"]').tooltip();
+
+    //Get listing of movies from DB
+    queryDB();
 
     //Twitter button javascript (from twitter.com)
     window.twttr = (function(d, s, id) {
@@ -58,7 +82,7 @@ $(".twitter-hashtag-button").on("click", function() {
 //If Go! is clicked run the movie query
 $("#searchRequest").on("click", function(){
 
-	$("#twitterRate").html("Getting Score...");
+	$("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
 	movieQuery();
 });
 
@@ -66,6 +90,7 @@ $("#searchRequest").on("click", function(){
 $("input").keypress(function(event) {
     if (event.which == 13) {
         event.preventDefault();
+        $("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
         movieQuery();
     }
 });
@@ -86,24 +111,45 @@ $("#twitterBox").on("mouseout", function(){
 	}
 });
 
+//Everytime a key is pressed update possibilities list
+var lastentry = "";
+$('#movieSearch').keyup(function(event) {
+   if($('#movieSearch').val() != lastentry) {       
+   		lastentry = $('#movieSearch').val();
+   			updateList();
+   }
+   lastentry = $('#movieSearch').val();
+});
+
 //Get the string from the earch box and call the search function
 function movieQuery(){
+
 	var searchString = $("#movieSearch").val().trim();
+	var movieName = searchString.replace(/\(.*?\)/g, "").trim();
+	var movieYear = searchString.match(/\d{8}/);
 	
 	//Prevent searches on blank search string
 	if(searchString !== "" && searchString !== null){
+		if(movieYear!==null){
+
+			omdbSearch(movieName, movieYear[0]);
+			
+		}
+		else{
+			omdbSearch(movieName,"");
+		}
 
 		//Seach OMDB API
-		omdbSearch(searchString);
+		//omdbSearch(searchString);
 
 		//For twitter search see omdbSearch() under foundMovie logic;
 	}
 }
 
 //Query the omdb
-function omdbSearch(movieName){
+function omdbSearch(movieName, movieTitle){
 
-	var queryURL = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&r=json";
+	var queryURL = "http://www.omdbapi.com/?t="+movieName+"&y="+movieTitle+"&plot=short&r=json";
 
 	$.ajax({url: queryURL, method: 'GET'})
 	.done(function(response) {
@@ -112,8 +158,14 @@ function omdbSearch(movieName){
 		var title = response.Title;
 		var plot = response.Plot;
 		var year = response.Year;
-		var image = $('<img>').attr("src", response.Poster);
+		var image;
+		if(response.Poster === "N/A"){
+			image = "<p>No Image Avaliable :(</p>";
+		}
+		else{
+		image = $('<img>').attr("src", response.Poster);
 			image.attr("alt", title);
+		}
 		var actors = response.Actors;
 		var rating = response.Rated;
 		var imdbRate = response.imdbRating;
@@ -141,7 +193,7 @@ function omdbSearch(movieName){
 			$("#movieActors").html("N/A");
 			$("#rating").html("N/A");
 			$("#imdbRate").html("N/A");
-			$("#twitterRate").html("N/A");
+			$("#twitterRate").html("<p>N/A</p>");
 
 			//Stops twitter feed from last movie (if searched)
 			resetAnimation();
@@ -155,6 +207,12 @@ function omdbSearch(movieName){
 
 function twitterSearch(movieName){
 
+	//Remove 'The' and 'A' from title for better search
+	movieName = movieName.replace(/the /i,'');
+	if(movieName[0].toUpperCase() === 'A' && movieName[1] === ' '){
+		movieName=movieName.substring(1);
+	}
+	//console.log(movieName);
 	var queryURL = "http://apparelart.com/Bootcamp/getTweets.php?tweet="+movieName;
 
 	var positive =0;
@@ -182,7 +240,7 @@ function twitterSearch(movieName){
 	 	resetAnimation();
 		animateBoxA();
 	 	$twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
-	 	$("#twitterRate").html($twitterScore);
+	 	$("#twitterRate").html("<p>"+$twitterScore+"</p>");
 	 });
 }
 
@@ -274,4 +332,33 @@ function formatTweet(tweetObj){
 
 	line = handle+message+"<br /><br />";
 	return line;
+}
+
+//Add results from DB to autocomplete
+function updateList(){
+
+	$( "#movieSearch" ).autocomplete({
+		//Makes autocomplete only max 10 possibilities
+		source: function(request, response) {
+	       var results = $.ui.autocomplete.filter(autocompleteList, request.term);
+	       response(results.slice(0, 10));
+    	},
+    	minLength:2
+	});
+}
+
+//Query entire DB, firebase does not have native "like" search capabilities
+function queryDB(){
+	database.ref().orderByChild('title').on("value", function(snapshot) {
+		autocompleteList= new Array();
+		var dbArray = $.map(snapshot.val(), function(el) { 
+			return el 
+		});
+        for(var i=0;i<dbArray.length;++i){
+            if(snapshot.val()!==null){
+            	autocompleteList.push(dbArray[i].title);
+            }
+        }
+    });
+
 }
