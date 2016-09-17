@@ -535,3 +535,12 @@ fieldset[disabled] .btn-success.active {
 .bio-pic {
   
 }
+
+.tweets {
+  margin-top: 40px;
+}
+
+.stopAnimation {
+  margin-left: 20px;
+  margin-right: 20px;
+}
