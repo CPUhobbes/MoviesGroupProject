@@ -30,6 +30,9 @@ var stopAnimation = $(".stopAnimation");
 var twitterBoxA = $("#twitterContentBoxA");
 var twitterBoxB = $("#twitterContentBoxB");
 
+var foundMovie = false;
+var twitterScore = -1;
+
 //Document on ready
 $(document).ready(function(){
 	//Enables tooltip
@@ -90,9 +93,17 @@ $("#searchRequest").on("click", function(){
 $("input").keypress(function(event) {
     if (event.which == 13) {
         event.preventDefault();
+        $("#movieSearch").val("movie name here");
         $("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
         movieQuery();
     }
+});
+
+//Remove red background (if present) when entering text box
+$("#movieSearch").on("focus", function(){
+
+	$("#movieSearch").removeClass("changeForm");
+	$("#movieSearch").attr("placeholder", "Search for a movie...");
 });
 
 
@@ -123,26 +134,39 @@ $('#movieSearch').keyup(function(event) {
 
 //Get the string from the earch box and call the search function
 function movieQuery(){
-
 	var searchString = $("#movieSearch").val().trim();
-	var movieName = searchString.replace(/\(.*?\)/g, "").trim();
-	var movieYear = searchString.match(/\d{8}/);
-	
-	//Prevent searches on blank search string
-	if(searchString !== "" && searchString !== null){
-		if(movieYear!==null){
 
-			omdbSearch(movieName, movieYear[0]);
-			
+	if(/<[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) || /<\s*\/[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) 
+	|| /<>/.test(searchString)){
+		$("#movieSearch").addClass("changeForm");
+		$("#movieSearch").val("");
+		$("#movieSearch").attr("placeholder", "Please do not use HTML tags...");
+	}
+	else if (searchString === ''){
+		$("#movieSearch").addClass("changeForm");
+		$("#movieSearch").val("");
+		$("#movieSearch").attr("placeholder", "Please type a movie...");
+	}
+	else{
+		var movieName = searchString.replace(/\(.*?\)/g, "").trim();
+		var movieYear = searchString.match(/\d{8}/);
+		
+		//Prevent searches on blank search string
+		if(searchString !== "" && searchString !== null){
+			if(movieYear!==null){
+
+				omdbSearch(movieName, movieYear[0]);
+				
+			}
+			else{
+				omdbSearch(movieName,"");
+			}
+
+			//Seach OMDB API
+			//omdbSearch(searchString);
+
+			//For twitter search see omdbSearch() under foundMovie logic;
 		}
-		else{
-			omdbSearch(movieName,"");
-		}
-
-		//Seach OMDB API
-		//omdbSearch(searchString);
-
-		//For twitter search see omdbSearch() under foundMovie logic;
 	}
 }
 
@@ -169,10 +193,17 @@ function omdbSearch(movieName, movieTitle){
 		var actors = response.Actors;
 		var rating = response.Rated;
 		var imdbRate = response.imdbRating;
-		var foundMovie = response.Response;
+
+		//Get db response for true or false if movie found
+		if(response.Response === "False"){
+			foundMovie = false;
+		}
+		else{
+			foundMovie = true;
+		}
 
 		//If a movie is found populate page
-		if(foundMovie !== "False"){
+		if(foundMovie){
 
 			$("#movieTitle").html(title);
 			$("#movieImage").html(image);
@@ -235,12 +266,25 @@ function twitterSearch(movieName){
 	 	}
 
 	 	//Append all tweets to both twitter boxes
-	 	twitterBoxA.html(tweets);
-	 	twitterBoxB.html(tweets);
+	 	if((positive+negative) <4){
+	 		twitterBoxA.html(tweets);
+	 	}
+		else{
+	 		twitterBoxB.html(tweets);
+	 		twitterBoxA.html(tweets);
+	 	}
 	 	resetAnimation();
 		animateBoxA();
-	 	$twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
-	 	$("#twitterRate").html("<p>"+$twitterScore+"</p>");
+		console.log(positive, negative);
+
+		if(positive === 0 && negative ===0){
+			twitterScore = -1;
+			$("#twitterRate").html("<p class=\"redText\">Cannot Find Tweets</p>");
+		}
+		else{
+	 		twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
+	 		$("#twitterRate").html("<p>"+twitterScore+"</p>");
+	 }
 	 });
 }
 
@@ -361,4 +405,11 @@ function queryDB(){
         }
     });
 
+}
+
+function isValidMovie(){
+	return foundMovie;
+}
+function getTwitterScore(){
+	return twitterScore;
 }
