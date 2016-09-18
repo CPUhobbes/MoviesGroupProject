@@ -55,6 +55,14 @@ h3.inlineText{
 }
 .ui-menu-item-wrapper{
 	font-size: 20px;
-
+}
+.changeForm{
+	background-color: rgba(255, 220,220, .5);
+}
+.redText{
+	color: red;
 
 }
+
+
+
