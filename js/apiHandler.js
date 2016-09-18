@@ -1,11 +1,4 @@
 //Firebase
-// var config = {
-//     apiKey: "AIzaSyCEH0sq38WLWhVNAeLA5KD6sGqh32OcrEM",
-//     authDomain: "class-891d1.firebaseapp.com",
-//     databaseURL: "https://class-891d1.firebaseio.com",
-//     storageBucket: "class-891d1.appspot.com",
-//     messagingSenderId: "122896327252"
-//   };
 
 var config = {
     apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
@@ -93,7 +86,6 @@ $("#searchRequest").on("click", function(){
 $("input").keypress(function(event) {
     if (event.which == 13) {
         event.preventDefault();
-        $("#movieSearch").val("movie name here");
         $("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
         movieQuery();
     }
@@ -137,7 +129,7 @@ function movieQuery(){
 	var searchString = $("#movieSearch").val().trim();
 
 	if(/<[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) || /<\s*\/[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) 
-	|| /<>/.test(searchString)){
+	|| /<>/.test(searchString) || /<\s*\/*\s*>/.test(searchString)){
 		$("#movieSearch").addClass("changeForm");
 		$("#movieSearch").val("");
 		$("#movieSearch").attr("placeholder", "Please do not use HTML tags...");
@@ -266,13 +258,8 @@ function twitterSearch(movieName){
 	 	}
 
 	 	//Append all tweets to both twitter boxes
-	 	if((positive+negative) <4){
-	 		twitterBoxA.html(tweets);
-	 	}
-		else{
-	 		twitterBoxB.html(tweets);
-	 		twitterBoxA.html(tweets);
-	 	}
+	 	twitterBoxB.html(tweets);
+	 	twitterBoxA.html(tweets);
 	 	resetAnimation();
 		animateBoxA();
 		console.log(positive, negative);
