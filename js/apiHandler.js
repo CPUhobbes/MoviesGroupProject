@@ -1,11 +1,4 @@
 //Firebase
-// var config = {
-//     apiKey: "AIzaSyCEH0sq38WLWhVNAeLA5KD6sGqh32OcrEM",
-//     authDomain: "class-891d1.firebaseapp.com",
-//     databaseURL: "https://class-891d1.firebaseio.com",
-//     storageBucket: "class-891d1.appspot.com",
-//     messagingSenderId: "122896327252"
-//   };
 
 var config = {
     apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
@@ -29,6 +22,9 @@ var scrollingBoxB=false;
 var stopAnimation = $(".stopAnimation");
 var twitterBoxA = $("#twitterContentBoxA");
 var twitterBoxB = $("#twitterContentBoxB");
+
+var foundMovie = false;
+var twitterScore = -1;
 
 //Document on ready
 $(document).ready(function(){
@@ -95,6 +91,13 @@ $("input").keypress(function(event) {
     }
 });
 
+//Remove red background (if present) when entering text box
+$("#movieSearch").on("focus", function(){
+
+	$("#movieSearch").removeClass("changeForm");
+	$("#movieSearch").attr("placeholder", "Search for a movie...");
+});
+
 
 //If mouseover on twitter feed, stop animation
 $("#twitterBox").on("mouseover", function(){
@@ -123,26 +126,39 @@ $('#movieSearch').keyup(function(event) {
 
 //Get the string from the earch box and call the search function
 function movieQuery(){
-
 	var searchString = $("#movieSearch").val().trim();
-	var movieName = searchString.replace(/\(.*?\)/g, "").trim();
-	var movieYear = searchString.match(/\d{8}/);
-	
-	//Prevent searches on blank search string
-	if(searchString !== "" && searchString !== null){
-		if(movieYear!==null){
 
-			omdbSearch(movieName, movieYear[0]);
-			
+	if(/<[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) || /<\s*\/[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) 
+	|| /<>/.test(searchString) || /<\s*\/*\s*>/.test(searchString)){
+		$("#movieSearch").addClass("changeForm");
+		$("#movieSearch").val("");
+		$("#movieSearch").attr("placeholder", "Please do not use HTML tags...");
+	}
+	else if (searchString === ''){
+		$("#movieSearch").addClass("changeForm");
+		$("#movieSearch").val("");
+		$("#movieSearch").attr("placeholder", "Please type a movie...");
+	}
+	else{
+		var movieName = searchString.replace(/\(.*?\)/g, "").trim();
+		var movieYear = searchString.match(/\d{8}/);
+		
+		//Prevent searches on blank search string
+		if(searchString !== "" && searchString !== null){
+			if(movieYear!==null){
+
+				omdbSearch(movieName, movieYear[0]);
+				
+			}
+			else{
+				omdbSearch(movieName,"");
+			}
+
+			//Seach OMDB API
+			//omdbSearch(searchString);
+
+			//For twitter search see omdbSearch() under foundMovie logic;
 		}
-		else{
-			omdbSearch(movieName,"");
-		}
-
-		//Seach OMDB API
-		//omdbSearch(searchString);
-
-		//For twitter search see omdbSearch() under foundMovie logic;
 	}
 }
 
@@ -169,10 +185,17 @@ function omdbSearch(movieName, movieTitle){
 		var actors = response.Actors;
 		var rating = response.Rated;
 		var imdbRate = response.imdbRating;
-		var foundMovie = response.Response;
+
+		//Get db response for true or false if movie found
+		if(response.Response === "False"){
+			foundMovie = false;
+		}
+		else{
+			foundMovie = true;
+		}
 
 		//If a movie is found populate page
-		if(foundMovie !== "False"){
+		if(foundMovie){
 
 			$("#movieTitle").html(title);
 			$("#movieImage").html(image);
@@ -235,12 +258,20 @@ function twitterSearch(movieName){
 	 	}
 
 	 	//Append all tweets to both twitter boxes
-	 	twitterBoxA.html(tweets);
 	 	twitterBoxB.html(tweets);
+	 	twitterBoxA.html(tweets);
 	 	resetAnimation();
 		animateBoxA();
-	 	$twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
-	 	$("#twitterRate").html("<p>"+$twitterScore+"</p>");
+		console.log(positive, negative);
+
+		if(positive === 0 && negative ===0){
+			twitterScore = -1;
+			$("#twitterRate").html("<p class=\"redText\">Cannot Find Tweets</p>");
+		}
+		else{
+	 		twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
+	 		$("#twitterRate").html("<p>"+twitterScore+"</p>");
+	 }
 	 });
 }
 
@@ -361,4 +392,11 @@ function queryDB(){
         }
     });
 
+}
+
+function isValidMovie(){
+	return foundMovie;
+}
+function getTwitterScore(){
+	return twitterScore;
 }
