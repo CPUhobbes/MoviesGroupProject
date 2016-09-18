@@ -271,6 +271,8 @@ function twitterSearch(movieName){
 		else{
 	 		twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
 	 		$("#twitterRate").html("<p>"+twitterScore+"</p>");
+	 	// Added by Kristin - execute Firebase search & buttons generator
+			databaseFunctions();
 	 }
 	 });
 }

@@ -9,9 +9,7 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 var currentMovieObj, searchInput, movieTitles;
-var twitterScore = 12.0; // getTwitterScore(); // from eric's code // TODO reactivate in final
 var moviesInOrder = [];
-var isSearchAMovie = true; //isValidMovie(); // from Eric's code, returns boolean if found in OMDB // TODO reactivate in final
 
 // When document is opened, run database listener functions
 $(document).ready(function(){
@@ -27,16 +25,15 @@ $("input").keypress(function(event) {
     }
 });
 
-// Click Handler: When search term is entered
-$("#searchRequest").on("click", function() {
+// Initiate all database functions, function is executed after click and ajax call to Twitter in apiHandler.js
+function databaseFunctions() {
     searchInput = $("#movieSearch").val().toString().trim().toLowerCase();
     addSearchToDB();
     updateMovieObj(currentMovieObj);
     updateOngoingScore(currentMovieObj);
     updateMoviesInOrderArr();
     updateMoviesButtons();
-    $("#movieSearch").val(""); // clear input form
-});
+}
 
 // Database Listener: Once - Grab ordered movies array from Firebase. If it doesn't exist, create a new array. Write the array to DOM as buttons.
 function grabExistingMovies() {
@@ -64,7 +61,7 @@ function checkMoviesInDatabase() {
 // If API validates that the search is a movie, check if the movie is already in Firebase, & if so grab the snapshot. If not in database, create a new object.
 // NOTE: Not using moment.js for the timestamp because the time is only being compared on the backend, not for the user or developer's benefit, so it doesn't need to be readable.
 function addSearchToDB() {
-    if (isSearchAMovie === true){
+    if (isValidMovie() === true){
         if (movieTitles !== undefined){
             database.ref("movies").on("value", function(snapshot){
                 if ((movieTitles.indexOf(searchInput) !== -1)) {
@@ -104,7 +101,7 @@ function updateMovieObj(movieObj) {
 
 // Calculate new ongoingScore
 function updateOngoingScore(movieObj) {
-    if (twitterScore > 0) {
+    if (getTwitterScore() > 0) {
         var searches = movieObj.numSearches;
         var score = movieObj.ongoingScore;
         var newScore = (((searches - 1) * score) + (1 * twitterScore)) / searches;
@@ -137,7 +134,6 @@ function updateMoviesInOrderArr() {
     for (var p = 0; p < (moviesInOrder.length - 1); p++) {
         if ((p < moviesInOrder.length) && (moviesInOrder[p].numSearches == moviesInOrder[p+1].numSearches)) {
             if (moviesInOrder[p].mostRecentSearchTime < moviesInOrder[p+1].mostRecentSearchTime) {
-                console.log("line 131"); // TODO Remove debug
                 var temp = moviesInOrder[p+1];
                 moviesInOrder[p+1] = moviesInOrder[p];
                 moviesInOrder[p] = temp;
@@ -165,7 +161,7 @@ $(document.body).on("click", ".btn-movie", function(){
     console.log(buttonSearch);
     $("#movieSearch").val(buttonSearch);
     $("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
-    // movieQuery(); // TODO reactivate in final
+    movieQuery();
 });
 
 
