@@ -1,26 +1,28 @@
 // Initialize Firebase
-var config = {
-    apiKey: "AIzaSyBDU_oaLw-ziSFeQpxeK1EuAaz_6ufnLf4",
-    authDomain: "moviesgroupproject.firebaseapp.com",
-    databaseURL: "https://moviesgroupproject.firebaseio.com",
-    storageBucket: "moviesgroupproject.appspot.com",
-};
-firebase.initializeApp(config);
+// var config = {
+//     apiKey: "AIzaSyBDU_oaLw-ziSFeQpxeK1EuAaz_6ufnLf4",
+//     authDomain: "moviesgroupproject.firebaseapp.com",
+//     databaseURL: "https://moviesgroupproject.firebaseio.com",
+//     storageBucket: "moviesgroupproject.appspot.com",
+// };
+// firebase.initializeApp(config);
 
-var database = firebase.database();
+//var database = new Firebase("https://moviesgroupproject.firebaseio.com");
 var currentMovieObj, searchInput, movieTitles;
 var moviesInOrder = [];
 
 // When document is opened, run database listener functions
 $(document).ready(function(){
     grabExistingMovies();
-    checkMoviesInDatabase();
+    updateMoviesInOrderArr();
+    updateMoviesButtons();
 });
 
 // Click Handler: Ensure that the enter key triggers searchRequest click handler
 $("input").keypress(function(event) {
     if (event.which == 13) {
-        event.preventDefault();
+        //event.preventDefault();
+        //event.stopImmediatePropagation();
         $("#searchRequest").click();
     }
 });
@@ -130,8 +132,10 @@ function updateMoviesInOrderArr() {
     }, function (errorObject) {
         console.log("Error: updateMoviesInOrderArr - The read failed: " + errorObject.code);
     });
+    console.log(moviesInOrder);
     // If the list item has the same numSearches as the next item, compare the search times. Move the most recent search first.
     for (var p = 0; p < (moviesInOrder.length - 1); p++) {
+        console.log("Yar");
         if ((p < moviesInOrder.length) && (moviesInOrder[p].numSearches == moviesInOrder[p+1].numSearches)) {
             if (moviesInOrder[p].mostRecentSearchTime < moviesInOrder[p+1].mostRecentSearchTime) {
                 var temp = moviesInOrder[p+1];
@@ -144,12 +148,16 @@ function updateMoviesInOrderArr() {
 
 // Write top 10 movies (most searched, most recent) to DOM
 function updateMoviesButtons() {
-    var moviesArrLength = 5;
-    if (moviesInOrder.length < 5) {
+    var moviesArrLength = 10;
+    console.log(moviesInOrder);
+    if (moviesInOrder.length < 10) {
         moviesArrLength = moviesInOrder.length;
     }
+    console.log(moviesArrLength);
+    console.log(moviesInOrder.length);
     $("#movieSearchesButtons").empty();
     for (var j = 0; j < moviesArrLength; j++) {
+        console.log("here!!");
         var movieTitle = $("<button>").html((j+1) + ") " + moviesInOrder[j].searchTerm).attr("class", "btn btn-primary btn-movie").attr("style", "margin: 1px; text-transform:capitalize;");
         $("#movieSearchesButtons").append(movieTitle);
     }

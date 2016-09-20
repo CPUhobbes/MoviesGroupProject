@@ -1,15 +1,25 @@
 //Firebase
 
-var config = {
-    apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
-    authDomain: "moviedb-542e0.firebaseapp.com",
-    databaseURL: "https://moviedb-542e0.firebaseio.com",
-    storageBucket: "moviedb-542e0.appspot.com",
-    messagingSenderId: "39102071856"
-  };
-  firebase.initializeApp(config);
+// var config = {
+//     apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
+//     authDomain: "moviedb-542e0.firebaseapp.com",
+//     databaseURL: "https://moviedb-542e0.firebaseio.com",
+//     storageBucket: "moviedb-542e0.appspot.com",
+//     messagingSenderId: "39102071856"
+//   };
+//   firebase.initializeApp(config);
 
-  var database = firebase.database();
+//   var database = firebase.database();
+
+var config = {
+   apiKey: "AIzaSyBDU_oaLw-ziSFeQpxeK1EuAaz_6ufnLf4",
+   authDomain: "moviesgroupproject.firebaseapp.com",
+   databaseURL: "https://moviesgroupproject.firebaseio.com",
+   storageBucket: "moviesgroupproject.appspot.com",
+};
+firebase.initializeApp(config);
+
+var database = firebase.database();
 
 //Autocomplete Lists
 var autocompleteList= new Array();  //JSON Object
@@ -271,7 +281,7 @@ function twitterSearch(movieName){
 		else{
 	 		twitterScore = Math.round( positive/(positive+negative) * 100 ) / 10;
 	 		$("#twitterRate").html("<p>"+twitterScore+"</p>");
-	 	// Added by Kristin - execute Firebase search & buttons generator
+	 			 	// Added by Kristin - execute Firebase search & buttons generator
 			databaseFunctions();
 	 }
 	 });
@@ -384,12 +394,14 @@ function updateList(){
 function queryDB(){
 	database.ref().orderByChild('title').on("value", function(snapshot) {
 		autocompleteList= new Array();
-		var dbArray = $.map(snapshot.val(), function(el) { 
-			return el 
+		var dbArray = $.map(snapshot.val(), function(arr) { 
+			return arr;
 		});
         for(var i=0;i<dbArray.length;++i){
             if(snapshot.val()!==null){
-            	autocompleteList.push(dbArray[i].title);
+            	if(Object.keys(dbArray[i])[0]=="title"){
+            		autocompleteList.push(dbArray[i].title);
+            	}
             }
         }
     });
