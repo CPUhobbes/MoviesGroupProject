@@ -8,23 +8,13 @@
 // firebase.initializeApp(config);
 
 //var database = new Firebase("https://moviesgroupproject.firebaseio.com");
-var currentMovieObj, searchInput, movieTitles;
+var currentMovieObj, searchInput, movieTitles, initialMoviesInOrder;
 var moviesInOrder = [];
 
 // When document is opened, run database listener functions
 $(document).ready(function(){
     grabExistingMovies();
-    updateMoviesInOrderArr();
-    updateMoviesButtons();
-});
-
-// Click Handler: Ensure that the enter key triggers searchRequest click handler
-$("input").keypress(function(event) {
-    if (event.which == 13) {
-        //event.preventDefault();
-        //event.stopImmediatePropagation();
-        $("#searchRequest").click();
-    }
+    initialMoviesInOrderArr();
 });
 
 // Initiate all database functions, function is executed after click and ajax call to Twitter in apiHandler.js
@@ -49,20 +39,10 @@ function grabExistingMovies() {
     });
 }
 
-// Grab snapshot from database
-function checkMoviesInDatabase() {
-    database.ref().on("value", function(snapshot) {
-        if (snapshot.child("movies").exists()) {
-            movieTitles = Object.keys(snapshot.val().movies);  
-        }
-    }, function (errorObject) {
-        console.log("Error: checkMoviesInDatabase - Read failed: " + errorObject.code);
-    });
-}
-
 // If API validates that the search is a movie, check if the movie is already in Firebase, & if so grab the snapshot. If not in database, create a new object.
 // NOTE: Not using moment.js for the timestamp because the time is only being compared on the backend, not for the user or developer's benefit, so it doesn't need to be readable.
 function addSearchToDB() {
+    currentMovieObj = undefined;
     if (isValidMovie() === true){
         if (movieTitles !== undefined){
             database.ref("movies").on("value", function(snapshot){
@@ -72,7 +52,7 @@ function addSearchToDB() {
                 else {
                     currentMovieObj = {
                         searchTerm: searchInput,
-                        numSearches: 0,
+                        numSearches: 1,
                         mostRecentSearchTime: Date.now(),
                         ongoingScore: 0
                     }
@@ -84,7 +64,7 @@ function addSearchToDB() {
         else if (currentMovieObj === undefined) {
             currentMovieObj = {
                 searchTerm: searchInput,
-                numSearches: 0,
+                numSearches: 1,
                 mostRecentSearchTime: Date.now(),
                 ongoingScore: 0
             }
@@ -95,6 +75,7 @@ function addSearchToDB() {
 
 // Update the values for currentMovieObj and push to Firebase
 function updateMovieObj(movieObj) {
+    movieObj.searchTerm = searchInput;
     movieObj.numSearches++;
     movieObj.mostRecentSearchTime = Date.now();
     movieObj.ongoingScore = updateOngoingScore(movieObj);
@@ -107,6 +88,9 @@ function updateOngoingScore(movieObj) {
         var searches = movieObj.numSearches;
         var score = movieObj.ongoingScore;
         var newScore = (((searches - 1) * score) + (1 * twitterScore)) / searches;
+        newScore = Math.round(newScore * 10) / 10;
+        $("#twitterRate").html("<p>"+newScore+"</p>");
+        database.ref("movies/" + searchInput).child("ongoingScore").set(newScore);
         return newScore;
     }
     else {
@@ -114,7 +98,7 @@ function updateOngoingScore(movieObj) {
     }
 }
 
-// Evaluate moviesInOrder and remove current movie from array if it exists. Then add back current movie to correct place based on numSearches. Then order items in that array with the same numsearches by most recent search.
+// Evaluate moviesInOrder and remove current movie from array if it exists. Then add back current movie to correct place based on numSearches. Then order items in that array with the same numSearches by most recent search.
 function updateMoviesInOrderArr() {
     moviesInOrder = [];
     database.ref("movies").orderByChild("numSearches").on("child_changed", function(snapshot) {
@@ -132,33 +116,51 @@ function updateMoviesInOrderArr() {
     }, function (errorObject) {
         console.log("Error: updateMoviesInOrderArr - The read failed: " + errorObject.code);
     });
-    console.log(moviesInOrder);
     // If the list item has the same numSearches as the next item, compare the search times. Move the most recent search first.
-    for (var p = 0; p < (moviesInOrder.length - 1); p++) {
-        console.log("Yar");
+    for (var p=0; p < (moviesInOrder.length-1); p++) {
         if ((p < moviesInOrder.length) && (moviesInOrder[p].numSearches == moviesInOrder[p+1].numSearches)) {
             if (moviesInOrder[p].mostRecentSearchTime < moviesInOrder[p+1].mostRecentSearchTime) {
-                var temp = moviesInOrder[p+1];
+                var temp1 = moviesInOrder[p+1];
                 moviesInOrder[p+1] = moviesInOrder[p];
-                moviesInOrder[p] = temp;
+                moviesInOrder[p] = temp1;
             }
         }
     }
 }
 
+// Initial grab of movies query to create initial buttons
+function initialMoviesInOrderArr() {
+    database.ref().once("value", function(snapshot){ 
+        if (snapshot.child("movies").exists()) {
+            moviesInOrder = snapshot.val().movies;
+            var keys = Object.keys(moviesInOrder);
+            for (var i=0; i < (keys.length-1); i++) {
+                if (moviesInOrder[keys[i]].numSearches < moviesInOrder[keys[i+1]].numSearches) {
+                    var temp2 = moviesInOrder[keys[i+1]];
+                    moviesInOrder[keys[i+1]] = moviesInOrder[keys[i]];
+                    moviesInOrder[keys[i]] = temp2;
+                }
+            }
+            // Initial snapshot returned an object of objects, so need to turn it into an array of objects to work with updateMoviesButtons.
+            var tempArr = [];
+            for (item in moviesInOrder) {
+                tempArr.push(moviesInOrder[item]);
+            }
+            moviesInOrder = tempArr;
+            updateMoviesButtons();
+        }
+    });
+}
+
 // Write top 10 movies (most searched, most recent) to DOM
 function updateMoviesButtons() {
     var moviesArrLength = 10;
-    console.log(moviesInOrder);
     if (moviesInOrder.length < 10) {
         moviesArrLength = moviesInOrder.length;
     }
-    console.log(moviesArrLength);
-    console.log(moviesInOrder.length);
     $("#movieSearchesButtons").empty();
     for (var j = 0; j < moviesArrLength; j++) {
-        console.log("here!!");
-        var movieTitle = $("<button>").html((j+1) + ") " + moviesInOrder[j].searchTerm).attr("class", "btn btn-primary btn-movie").attr("style", "margin: 1px; text-transform:capitalize;");
+        var movieTitle = $("<button>").html((j+1) + ") " + moviesInOrder[j].searchTerm).attr("class", "btn btn-primary btn-movie").attr("style", "margin: 1px; text-transform:capitalize;").attr("onclick", "location.href='#portfolio'");
         $("#movieSearchesButtons").append(movieTitle);
     }
 }
@@ -166,7 +168,6 @@ function updateMoviesButtons() {
 // Click handlers for the generated buttons
 $(document.body).on("click", ".btn-movie", function(){
     var buttonSearch = $(this).html().slice(3);
-    console.log(buttonSearch);
     $("#movieSearch").val(buttonSearch);
     $("#twitterRate").html("<i class=\"fa fa-spinner fa-spin fa-2x fa-fw\"></i><span class=\"sr-only\">Loading...</span>");
     movieQuery();
