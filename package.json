@@ -28,7 +28,6 @@
     "node": "4.1.1"
   },
   "scripts": {
-    "start": "node gulpfile.js",
-    "postinstall": "gulp default"
+    "start": "node gulpfile.js"
   }
 }
