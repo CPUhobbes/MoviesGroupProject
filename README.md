@@ -6,10 +6,11 @@ Movies by the Masses is an app that uses Twitter to find out how people are feel
 
 * HTML/CSS
 * Bootstrap
-* Javascript
+* Javascript/jQuery
 * Twitter API
 * OMDB API
-* Sentiment Analysis
+* Sentiment Analysis API
+* PHP
 * Firebase
 
 ## Getting Started
