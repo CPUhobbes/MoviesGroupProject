@@ -1,16 +1,5 @@
 //Firebase
 
-// var config = {
-//     apiKey: "AIzaSyDUiZ1lkYWW-a20dX1qRfoJRRvoLoNmwpo",
-//     authDomain: "moviedb-542e0.firebaseapp.com",
-//     databaseURL: "https://moviedb-542e0.firebaseio.com",
-//     storageBucket: "moviedb-542e0.appspot.com",
-//     messagingSenderId: "39102071856"
-//   };
-//   firebase.initializeApp(config);
-
-//   var database = firebase.database();
-
 var config = {
    apiKey: "AIzaSyBDU_oaLw-ziSFeQpxeK1EuAaz_6ufnLf4",
    authDomain: "moviesgroupproject.firebaseapp.com",
@@ -138,8 +127,8 @@ $('#movieSearch').keyup(function(event) {
 function movieQuery(){
 	var searchString = $("#movieSearch").val().trim();
 
-	if(/<[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) || /<\s*\/[A-Za-z\s][A-Za-z0-9\s]*>/.test(searchString) 
-	|| /<>/.test(searchString) || /<\s*\/*\s*>/.test(searchString)){
+	if(/<.*>/.test(searchString)){
+
 		$("#movieSearch").addClass("changeForm");
 		$("#movieSearch").val("");
 		$("#movieSearch").attr("placeholder", "Please do not use HTML tags...");
@@ -264,7 +253,6 @@ function twitterSearch(movieName){
 	 			negative+=1;
 	 		}
 	 		tweets += formatTweet(resultObj[i]);
-	 		//tweets+="@"+resultObj[i].name+"<br />"+resultObj[i].tweet+"<br /><br />";
 	 	}
 
 	 	//Append all tweets to both twitter boxes
@@ -345,8 +333,6 @@ function resetAnimation(){
 }
 
 function formatTweet(tweetObj){
-	//https://twitter.com/CPUHobbes/status/519635190927196160	
-	//tweets+="@"+resultObj[i].name+"<br />"+resultObj[i].tweet+"<br /><br />";
 	var line;
 	var handle = "<a href=\"https://twitter.com/"+tweetObj.name+"/status/"+tweetObj.id+"\" class=\"twitterClick twitterLinkBold\">@"+tweetObj.name+"</a><br />";
 

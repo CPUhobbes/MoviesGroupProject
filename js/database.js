@@ -1,13 +1,3 @@
-// Initialize Firebase
-// var config = {
-//     apiKey: "AIzaSyBDU_oaLw-ziSFeQpxeK1EuAaz_6ufnLf4",
-//     authDomain: "moviesgroupproject.firebaseapp.com",
-//     databaseURL: "https://moviesgroupproject.firebaseio.com",
-//     storageBucket: "moviesgroupproject.appspot.com",
-// };
-// firebase.initializeApp(config);
-
-//var database = new Firebase("https://moviesgroupproject.firebaseio.com");
 var currentMovieObj, searchInput, movieTitles, initialMoviesInOrder;
 var moviesInOrder = [];
 
