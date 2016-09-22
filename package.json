@@ -23,5 +23,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/BlackrockDigital/startbootstrap-freelancer.git"
+  },
+  "scripts": {
+    "start": "node app",
+    "postinstall": "gulp default"
   }
 }
