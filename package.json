@@ -23,11 +23,5 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/BlackrockDigital/startbootstrap-freelancer.git"
-  },
-  "engines": {
-    "node": "4.1.1"
-  },
-  "scripts": {
-    "start": "node gulpfile.js"
   }
 }
