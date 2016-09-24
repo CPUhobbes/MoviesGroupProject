@@ -255,7 +255,8 @@ function twitterSearch(movieName){
 	if(movieName[0].toUpperCase() === 'A' && movieName[1] === ' '){
 		movieName=movieName.substring(1);
 	}
-	//console.log(movieName);
+	//PHP file is hosted externally due to twitter keys cannot be public (for security reasons)
+	//File can be viewed under php/getTweets.php
 	var queryURL = "http://apparelart.com/Bootcamp/getTweets.php?tweet="+movieName;
 
 	var positive =0;
