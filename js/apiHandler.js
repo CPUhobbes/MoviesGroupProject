@@ -162,9 +162,9 @@ function movieQuery(){
 }
 
 //Query the omdb
-function omdbSearch(movieName, movieTitle){
+function omdbSearch(movieName, movieYear){
 
-	var queryURL = "http://www.omdbapi.com/?t="+movieName+"&y="+movieTitle+"&plot=short&r=json";
+	var queryURL = "http://www.omdbapi.com/?t="+movieName+"&y="+movieYear+"&plot=short&r=json";
 
 	$.ajax({url: queryURL, method: 'GET'})
 	.done(function(response) {
@@ -173,14 +173,16 @@ function omdbSearch(movieName, movieTitle){
 		var title = response.Title;
 		var plot = response.Plot;
 		var year = response.Year;
-		var image;
+		//var image;
 		if(response.Poster === "N/A"){
 			image = "<p>No Image Avaliable :(</p>";
 		}
 		else{
-		image = $('<img>').attr("src", response.Poster);
-			image.attr("alt", title);
-		}
+			//IMDB does not allow direct linking to images used by OMDB API
+			omdbPosterSearch(response.imdbID);
+			
+		 }
+
 		var actors = response.Actors;
 		var rating = response.Rated;
 		var imdbRate = response.imdbRating;
@@ -197,7 +199,7 @@ function omdbSearch(movieName, movieTitle){
 		if(foundMovie){
 
 			$("#movieTitle").html(title);
-			$("#movieImage").html(image);
+			//$("#movieImage").html(image);
 			$("#moviePlot").html(plot);
 			$("#movieActors").html(actors);
 			$("#rating").html(rating);
@@ -225,6 +227,25 @@ function omdbSearch(movieName, movieTitle){
 			$("#movieData").removeClass("hidden");
 			$("#movieData").addClass("visable");		
 	});
+}
+
+function omdbPosterSearch(idNum, title){
+	//OMDB has a poster API that doesn't used IMDB images
+	//OMDB Poster API Key isn't activated at this time (still waiting), using themovieDB API temporarily.  
+	//Using themovieDB solely would require rework of omdbSearch function.  
+	//If key isn't activated eventually, will rewrite omdbSearch function for themovieDB API.
+
+	var queryURL = "https://api.themoviedb.org/3/find/"+idNum+"?api_key=6da67bfb86c1874dd52d5307d2719d85&language=en-US&external_source=imdb_id";
+	//var queryURL = "http://img.omdbapi.com/?i="+idNum+"&apikey=6dc4a274";
+	console.log(idNum);
+	$.ajax({url: queryURL, method: 'GET'})
+	.done(function(response) {
+
+		var	image = $('<img>').attr("src", "http://image.tmdb.org/t/p/w300"+response.movie_results[0].poster_path);
+			image.attr("alt", title);
+			$("#movieImage").html(image);
+	});
+
 }
 
 function twitterSearch(movieName){
